@@ -26,66 +26,74 @@ if __name__ == "__main__":
 
     sttm.run(quiet, numSteps, output)
 
+
+def parseMachine(path, alphabet):
+    with open(path, "r") as inp:
+        tmLines = inp.readlines()
+
+    stateDictionary = {"ACCEPT": SimpleState("ACCEPT", alphabet),
+        "REJECT": SimpleState("REJECT", alphabet),
+        "ERROR": SimpleState("ERROR", alphabet),
+        "HALT": SimpleState("HALT", alphabet),
+        "OUT": SimpleState("OUT", alphabet)}
+
+    listOfRealStates = []
+
+    # initialize state dictionary
+    for line in tmLines[1:]:
+        if line != "\n": # not a blank line
+            lineSplit = string.split(line)
+
+            if lineSplit[0] == "START":
+                stateName = getStateName(line[6:])
+                startState = State(stateName, None, alphabet)
+                stateDictionary[stateName] = startState
+                listOfRealStates.append(stateDictionary[stateName])
+                startState.makeStartState()
+
+            elif not lineSplit[0] in alphabet:
+                stateName = getStateName(line)
+                stateDictionary[stateName] = State(stateName, None, alphabet)
+                listOfRealStates.append(stateDictionary[stateName])
+
+    currentStateBeingModified = None
+
+    # fill in state dictionary
+    for line in tmLines[1:]:
+        if line != "\n":
+            lineSplit = string.split(line)
+
+            if lineSplit[0] == "START":
+                stateName = getStateName(line[6:])
+                currentStateBeingModified = stateDictionary[stateName]
+
+            elif not lineSplit[0] in alphabet:
+                stateName = getStateName(line)
+                currentStateBeingModified = stateDictionary[stateName]
+
+            else:
+                symbol = lineSplit[0]
+                stateName = lineSplit[2][:-1]
+                headMove = lineSplit[3][:-1]
+                write = lineSplit[4]
+
+                currentStateBeingModified.setNextState(symbol,
+                    stateDictionary[stateName])
+                currentStateBeingModified.setHeadMove(symbol, headMove)
+                currentStateBeingModified.setWrite(symbol, write)
+
+    return startState, stateDictionary
+
+
 class SingleTapeTuringMachine:
     def __init__(self, path, alphabet=["_", "1", "H", "E"]):        
         self.state = None
         self.tape = Tape(None, alphabet[0])
 
-        listOfSymbols = alphabet
-
-        inp = open(path, "r")
-        tmLines = inp.readlines()
-
-        self.stateDictionary = {"ACCEPT": SimpleState("ACCEPT", alphabet),
-            "REJECT": SimpleState("REJECT", alphabet),
-            "ERROR": SimpleState("ERROR", alphabet),
-            "HALT": SimpleState("HALT", alphabet),
-            "OUT": SimpleState("OUT", alphabet)}
-
-        self.listOfRealStates = []
-
-        # initialize state dictionary
-        for line in tmLines[1:]:
-            if line != "\n": # not a blank line
-                lineSplit = string.split(line)
-                                
-                if lineSplit[0] == "START":
-                    stateName = getStateName(line[6:])
-                    self.startState = State(stateName, None, alphabet)
-                    self.stateDictionary[stateName] = self.startState
-                    self.listOfRealStates.append(self.stateDictionary[stateName])
-                    self.startState.makeStartState()
-                                
-                elif not lineSplit[0] in listOfSymbols:
-                    stateName = getStateName(line)
-                    self.stateDictionary[stateName] = State(stateName, None, alphabet)
-                    self.listOfRealStates.append(self.stateDictionary[stateName])
-                
-        currentStateBeingModified = None
-
-        # fill in state dictionary
-        for line in tmLines[1:]:
-            if line != "\n":
-                lineSplit = string.split(line)
-            
-                if lineSplit[0] == "START":
-                    stateName = getStateName(line[6:])
-                    currentStateBeingModified = self.stateDictionary[stateName]
-                
-                elif not lineSplit[0] in listOfSymbols:
-                    stateName = getStateName(line)
-                    currentStateBeingModified = self.stateDictionary[stateName]    
-
-                else:
-                    symbol = lineSplit[0]
-                    stateName = lineSplit[2][:-1]
-                    headMove = lineSplit[3][:-1]
-                    write = lineSplit[4]                    
-
-                    currentStateBeingModified.setNextState(symbol, 
-                        self.stateDictionary[stateName])
-                    currentStateBeingModified.setHeadMove(symbol, headMove)
-                    currentStateBeingModified.setWrite(symbol, write)
+        startState, stateDictionary = parseMachine(
+                path, alphabet)
+        self.startState = startState
+        self.stateDictionary = stateDictionary
 
     def run(self, quiet=False, numSteps=float("Inf"), output=None):
         
