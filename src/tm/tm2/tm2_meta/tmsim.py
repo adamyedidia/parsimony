@@ -109,32 +109,33 @@ class SingleTapeTuringMachine:
             
             stepCounter += 1
 
-            if self.state.stateName == "ERROR":
-                print "Turing machine threw error!"
-                halted = True
-                break
+            if self.state.isSimpleState():
+                if self.state.stateName == "ERROR":
+                    print "Turing machine threw error!"
+                    halted = True
+                    break
 
-            if self.state.stateName == "ACCEPT":
-                print "Turing machine accepted after", stepCounter, "steps."
-                print len(self.tape.tapeDict), "squares of memory were used."
-                halted = True
-                break
-        
-            if self.state.stateName == "REJECT":
-                print "Turing machine rejected after", stepCounter, "steps."
-                print len(self.tape.tapeDict), "squares of memory were used."
-                halted = True
-                break
-        
-            if self.state.stateName == "HALT":
-                print "Turing machine halted after", stepCounter, "steps."
-                print len(self.tape.tapeDict), "squares of memory were used."
-                halted = True
-                break
-                
-            if self.state.stateName == "OUT":
-                print "Turing machine execution incomplete: reached out state."
-                print "Perhaps this Turing machine wants to be melded with another machine."
+                if self.state.stateName == "ACCEPT":
+                    print "Turing machine accepted after", stepCounter, "steps."
+                    print len(self.tape.tapeDict), "squares of memory were used."
+                    halted = True
+                    break
+
+                if self.state.stateName == "REJECT":
+                    print "Turing machine rejected after", stepCounter, "steps."
+                    print len(self.tape.tapeDict), "squares of memory were used."
+                    halted = True
+                    break
+
+                if self.state.stateName == "HALT":
+                    print "Turing machine halted after", stepCounter, "steps."
+                    print len(self.tape.tapeDict), "squares of memory were used."
+                    halted = True
+                    break
+
+                if self.state.stateName == "OUT":
+                    print "Turing machine execution incomplete: reached out state."
+                    print "Perhaps this Turing machine wants to be melded with another machine."
 
             symbol = self.tape.readSymbol()
             headmove = self.state.getHeadMove(symbol)

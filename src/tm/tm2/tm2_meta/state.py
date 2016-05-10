@@ -31,6 +31,9 @@ class SimpleState:
 	def isState(self):
 		return True
 
+	def isSimpleState(self):
+		return True
+
 # a group of states associated with writing a function
 class FunctionGroup:
 	def __init__(self, functionName, functionLines, functionVariableDictionary, 
@@ -470,6 +473,9 @@ class State(object):
 	
 	def isState(self):
 		return True
+
+	def isSimpleState(self):
+		return False
 
 	def makeStartState(self):
 		self.isStartState = True
