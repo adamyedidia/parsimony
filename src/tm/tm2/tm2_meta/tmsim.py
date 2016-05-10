@@ -97,7 +97,7 @@ def stateDictionariesToLists(stateDictionary, alphabet, startState):
             simulationStates[state]._initFromState(state, simulationStates)
     return simulationStates[startState]
 
-class SingleTapeTuringMachine:
+class SingleTapeTuringMachine(object):
     def __init__(self, path, alphabet=["_", "1", "H", "E"]):        
         self.state = None
         self.tape = Tape(None, alphabet[0])
