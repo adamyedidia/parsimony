@@ -132,8 +132,8 @@ class SingleTapeTuringMachine:
             headmove = self.state.getHeadMove(symbol)
 
             self.tape.writeSymbol(self.state.getWrite(symbol))
-            self.tape.moveHead(self.state.getHeadMove(symbol))  
-            self.state = self.state.getNextState(symbol)     
+            self.tape.moveHead(headmove)
+            self.state = self.state.getNextState(symbol)
 
         if not halted:
             print "Turing machine ran for", numSteps, "steps without halting."
@@ -156,14 +156,27 @@ class Tape(object):
     def __init__(self, name, initSymbol):
         self.name = name
         self.headLoc = 0
-        self.tapeDict = {0: initSymbol}
+        self.tapePos = [initSymbol]
+        self.tapeNeg = []
         self.initSymbol = initSymbol
 
     def readSymbol(self):
-        return self.tapeDict[self.headLoc]
+        return self._readSymbol(self.headLoc)
+
+    def _readSymbol(self, pos):
+        try:
+            if pos >= 0:
+                return self.tapePos[pos]
+            else:
+                return self.tapeNeg[~pos]
+        except IndexError:
+            return self.initSymbol
 
     def writeSymbol(self, symbol):
-        self.tapeDict[self.headLoc] = symbol
+        if self.headLoc >= 0:
+            self.tapePos[self.headLoc] = symbol
+        else:
+            self.tapeNeg[~self.headLoc] = symbol
 
     def moveHead(self, direction):
         if direction == "L":
@@ -181,50 +194,37 @@ class Tape(object):
             raise
 
     def continueTape(self):
-        if not self.headLoc in self.tapeDict:
-            self.tapeDict[self.headLoc] = self.initSymbol
+        if self.headLoc >= 0:
+            assert 0 <= self.headLoc <= len(self.tapePos)
+            if self.headLoc == len(self.tapePos):
+                self.tapePos.append(self.initSymbol)
+        else:
+            pos = ~self.headLoc
+            assert 0 <= pos <= len(self.tapeNeg)
+            if pos == len(self.tapeNeg):
+                self.tapeNeg.append(self.initSymbol)
 
     def printTape(self, start, end, output=None):
-        headString = ""
-        tapeString = ""
-        for i in range(start, end):
-            
-            if i == self.headLoc:
-                headString += "v"
-            else:
-                headString += " "
-
-            if i in self.tapeDict:
-                tapeString += self.tapeDict[i][0]
-            else:
-                tapeString += self.initSymbol
-        
-        if not self.name == None:
-            tapeString += " " + self.name
-
+        out = self.getTapeOutput(start, end)
         if output == None:
-            print headString
-            print tapeString
-        else:       
-            output.write(headString + "\n")
-            output.write(tapeString + "\n")
+            print out,
+        else:
+            output.write(out)
 
     def getTapeOutput(self, start, end):
-        headString = ""
-        tapeString = ""
+        headString = []
+        tapeString = []
         for i in range(start, end):
-            
             if i == self.headLoc:
-                headString += "v"
+                headString .append("v")
             else:
-                headString += " "
+                headString.append(" ")
 
-            if i in self.tapeDict:
-                tapeString += self.tapeDict[i][0]
-            else:
-                tapeString += self.initSymbol
+            tapeString.append(self._readSymbol(i)[0])
         
         if not self.name == None:
-            tapeString += " " + self.name
+            tapeString.append(" " + self.name)
         
+        headString = "".join(headString)
+        tapeString = "".join(tapeString)
         return headString + "\n" + tapeString + "\n"
