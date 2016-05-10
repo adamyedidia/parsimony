@@ -93,8 +93,9 @@ class SingleTapeTuringMachine:
 
         stepCounter = 0
         halted = False
+        numSteps = float(numSteps)
 
-        while stepCounter < float(numSteps):
+        while stepCounter < numSteps:
             if not quiet:
                 self.printTape(-2, 340, output)
             
