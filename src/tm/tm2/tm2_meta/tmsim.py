@@ -84,6 +84,18 @@ def parseMachine(path, alphabet):
 
     return startState, stateDictionary
 
+def stateDictionariesToLists(stateDictionary, alphabet, startState):
+    simulationStates = {}
+    for state in stateDictionary.itervalues():
+        if state.isSimpleState():
+            newState = state
+        else:
+            newState = SimulationState()
+        simulationStates[state] = newState
+    for state in stateDictionary.itervalues():
+        if not state.isSimpleState():
+            simulationStates[state]._initFromState(state, simulationStates)
+    return simulationStates[startState]
 
 class SingleTapeTuringMachine:
     def __init__(self, path, alphabet=["_", "1", "H", "E"]):        
@@ -92,8 +104,9 @@ class SingleTapeTuringMachine:
 
         startState, stateDictionary = parseMachine(
                 path, alphabet)
+        startState = stateDictionariesToLists(
+                stateDictionary, alphabet, startState)
         self.startState = startState
-        self.stateDictionary = stateDictionary
 
     def run(self, quiet=False, numSteps=float("Inf"), output=None):
         
@@ -159,6 +172,36 @@ class SingleTapeTuringMachine:
 
             self.tape.printTape(start, end, output)
 #           output.write("--------------------------------------\n")    
+
+
+class SimulationState(object):
+    def __init__(self):
+        self.nextState = [None] * 256
+        self.headMove = [""] * 256
+        self.write = [""] * 256
+
+    def _initFromState(self, realState, simulationStates):
+        self.stateName = realState.stateName
+        self.description = realState.description
+        self.alphabet = realState.alphabet
+        self.isStartState = realState.isStartState
+        for symbol in self.alphabet:
+            self.headMove[ord(symbol)] = realState.headMoveDict[symbol]
+            self.write[ord(symbol)] = realState.writeDict[symbol]
+            self.nextState[ord(symbol)] = simulationStates[
+                    realState.nextStateDict[symbol]]
+
+    def getNextState(self, symbol):
+        return self.nextState[ord(symbol)]
+
+    def getHeadMove(self, symbol):
+        return self.headMove[ord(symbol)]
+
+    def getWrite(self, symbol):
+        return self.write[ord(symbol)]
+
+    def isSimpleState(self):
+        return False
 
 class Tape(object):
     # By convention the first symbol in the alphabet is the initial symbol
