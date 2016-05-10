@@ -177,7 +177,7 @@ class SingleTapeTuringMachine(object):
 class SimulationState(object):
     def __init__(self):
         self.nextState = [None] * 256
-        self.headMove = [""] * 256
+        self.headMove = [0] * 256
         self.write = [0] * 256
 
     def _initFromState(self, realState, simulationStates):
@@ -186,7 +186,16 @@ class SimulationState(object):
         self.alphabet = realState.alphabet
         self.isStartState = realState.isStartState
         for symbol in self.alphabet:
-            self.headMove[ord(symbol)] = realState.headMoveDict[symbol]
+            move = realState.headMoveDict[symbol]
+            if move == "L":
+                move = -1
+            elif move == "R":
+                move = 1
+            elif move == "-":
+                move = 0
+            else:
+                raise ValueError("unknown move %s" % move)
+            self.headMove[ord(symbol)] = move
             self.write[ord(symbol)] = ord(realState.writeDict[symbol])
             self.nextState[ord(symbol)] = simulationStates[
                     realState.nextStateDict[symbol]]
@@ -245,19 +254,9 @@ class Tape(object):
 
 
     def moveHead(self, direction):
-        if direction == "L":
-            self.headLoc -= 1
+        if direction:
+            self.headLoc += direction
             self.continueTape()
-
-        elif direction == "R":
-            self.headLoc += 1
-            self.continueTape()
-
-        elif direction == "-":
-            pass
-        else:
-            print "bad head move", headmove
-            raise
 
     def continueTape(self):
         if self.headLoc >= 0:
