@@ -150,12 +150,12 @@ class SingleTapeTuringMachine:
                     print "Turing machine execution incomplete: reached out state."
                     print "Perhaps this Turing machine wants to be melded with another machine."
 
-            symbol = self.tape.readSymbol()
-            headmove = self.state.getHeadMove(symbol)
+            symbolord = self.tape.readSymbolOrd()
+            headmove = self.state.getHeadMove(symbolord)
 
-            self.tape.writeSymbol(self.state.getWrite(symbol))
+            self.tape.writeSymbolOrd(self.state.getWrite(symbolord))
             self.tape.moveHead(headmove)
-            self.state = self.state.getNextState(symbol)
+            self.state = self.state.getNextState(symbolord)
 
         if not halted:
             print "Turing machine ran for", numSteps, "steps without halting."
@@ -178,7 +178,7 @@ class SimulationState(object):
     def __init__(self):
         self.nextState = [None] * 256
         self.headMove = [""] * 256
-        self.write = [""] * 256
+        self.write = [0] * 256
 
     def _initFromState(self, realState, simulationStates):
         self.stateName = realState.stateName
@@ -187,18 +187,18 @@ class SimulationState(object):
         self.isStartState = realState.isStartState
         for symbol in self.alphabet:
             self.headMove[ord(symbol)] = realState.headMoveDict[symbol]
-            self.write[ord(symbol)] = realState.writeDict[symbol]
+            self.write[ord(symbol)] = ord(realState.writeDict[symbol])
             self.nextState[ord(symbol)] = simulationStates[
                     realState.nextStateDict[symbol]]
 
-    def getNextState(self, symbol):
-        return self.nextState[ord(symbol)]
+    def getNextState(self, ordsymbol):
+        return self.nextState[ordsymbol]
 
-    def getHeadMove(self, symbol):
-        return self.headMove[ord(symbol)]
+    def getHeadMove(self, ordsymbol):
+        return self.headMove[ordsymbol]
 
-    def getWrite(self, symbol):
-        return self.write[ord(symbol)]
+    def getWrite(self, ordsymbol):
+        return self.write[ordsymbol]
 
     def isSimpleState(self):
         return False
@@ -208,27 +208,38 @@ class Tape(object):
     def __init__(self, name, initSymbol):
         self.name = name
         self.headLoc = 0
-        self.tapePos = [initSymbol]
-        self.tapeNeg = []
         self.initSymbol = initSymbol
+        self.initSymbolOrd = ord(initSymbol)
+        self.tapePos = [self.initSymbolOrd]
+        self.tapeNeg = []
 
     def readSymbol(self):
         return self._readSymbol(self.headLoc)
 
+    def readSymbolOrd(self):
+        return self._readSymbolOrd(self.headLoc)
+
     def _readSymbol(self, pos):
+        return chr(self._readSymbolOrd(pos))
+
+    def _readSymbolOrd(self, pos):
         try:
             if pos >= 0:
                 return self.tapePos[pos]
             else:
                 return self.tapeNeg[~pos]
         except IndexError:
-            return self.initSymbol
+            return self.initSymbolOrd
 
     def writeSymbol(self, symbol):
+        return self.writeSymbolOrd(ord(symbol))
+
+    def writeSymbolOrd(self, ordsymbol):
         if self.headLoc >= 0:
-            self.tapePos[self.headLoc] = symbol
+            self.tapePos[self.headLoc] = ordsymbol
         else:
-            self.tapeNeg[~self.headLoc] = symbol
+            self.tapeNeg[~self.headLoc] = ordsymbol
+
 
     def moveHead(self, direction):
         if direction == "L":
@@ -249,12 +260,12 @@ class Tape(object):
         if self.headLoc >= 0:
             assert 0 <= self.headLoc <= len(self.tapePos)
             if self.headLoc == len(self.tapePos):
-                self.tapePos.append(self.initSymbol)
+                self.tapePos.append(self.initSymbolOrd)
         else:
             pos = ~self.headLoc
             assert 0 <= pos <= len(self.tapeNeg)
             if pos == len(self.tapeNeg):
-                self.tapeNeg.append(self.initSymbol)
+                self.tapeNeg.append(self.initSymbolOrd)
 
     def printTape(self, start, end, output=None):
         out = self.getTapeOutput(start, end)
@@ -268,7 +279,7 @@ class Tape(object):
         tapeString = []
         for i in range(start, end):
             if i == self.headLoc:
-                headString .append("v")
+                headString.append("v")
             else:
                 headString.append(" ")
 
