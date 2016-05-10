@@ -136,7 +136,7 @@ class SingleTapeTuringMachine:
 
                 if self.state.stateName == "REJECT":
                     print "Turing machine rejected after", stepCounter, "steps."
-                    print len(self.tape.tapeDict), "squares of memory were used."
+                    print self.tape.length(), "squares of memory were used."
                     halted = True
                     break
 
@@ -212,6 +212,9 @@ class Tape(object):
         self.initSymbolOrd = ord(initSymbol)
         self.tapePos = [self.initSymbolOrd]
         self.tapeNeg = []
+
+    def length(self):
+        return len(self.tapePos) + len(self.tapeNeg)
 
     def readSymbol(self):
         return self._readSymbol(self.headLoc)
