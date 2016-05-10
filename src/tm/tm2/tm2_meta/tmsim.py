@@ -129,10 +129,7 @@ class SingleTapeTuringMachine:
                 print "Perhaps this Turing machine wants to be melded with another machine."
 
             symbol = self.tape.readSymbol()
-
-            if not self.state.getHeadMove(symbol) in ["L", "R", "-"]:
-                print "bad head move", self.state.getHeadMove(symbol), "in state", self.state.stateName
-                raise
+            headmove = self.state.getHeadMove(symbol)
 
             self.tape.writeSymbol(self.state.getWrite(symbol))
             self.tape.moveHead(self.state.getHeadMove(symbol))  
@@ -180,7 +177,7 @@ class Tape(object):
         elif direction == "-":
             pass
         else:
-            print direction
+            print "bad head move", headmove
             raise
 
     def continueTape(self):
