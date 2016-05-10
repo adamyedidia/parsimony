@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     quiet = ("-q" in args)
 
-    numSteps = float("Inf") # default value
+    numSteps = sys.maxint # default value
     if ("-s" in args):
         numSteps = args[args.index("-s") + 1]
 

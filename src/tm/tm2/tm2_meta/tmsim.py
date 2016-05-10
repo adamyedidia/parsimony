@@ -114,7 +114,7 @@ class SingleTapeTuringMachine(object):
 
         stepCounter = 0
         halted = False
-        numSteps = float(numSteps)
+        numSteps = int(numSteps)
 
         while stepCounter < numSteps:
             if not quiet:
