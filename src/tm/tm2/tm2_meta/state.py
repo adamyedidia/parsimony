@@ -342,7 +342,7 @@ class VarGroup:
 	def attach(self, otherReactionGroup):
 		self.outState.setNextState("_", otherReactionGroup.inState)
 
-class State:
+class State(object):
 	def __init__(self, stateName, description="", alphabet=["_", "1", "H", "E"]):
 	
 		self.stateName = stateName

@@ -153,7 +153,7 @@ class SingleTapeTuringMachine:
             self.tape.printTape(start, end, output)
 #           output.write("--------------------------------------\n")    
 
-class Tape:
+class Tape(object):
     # By convention the first symbol in the alphabet is the initial symbol
     def __init__(self, name, initSymbol):
         self.name = name
