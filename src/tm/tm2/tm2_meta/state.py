@@ -31,6 +31,9 @@ class SimpleState:
 	def isState(self):
 		return True
 
+	def isSimpleState(self):
+		return True
+
 # a group of states associated with writing a function
 class FunctionGroup:
 	def __init__(self, functionName, functionLines, functionVariableDictionary, 
@@ -342,7 +345,7 @@ class VarGroup:
 	def attach(self, otherReactionGroup):
 		self.outState.setNextState("_", otherReactionGroup.inState)
 
-class State:
+class State(object):
 	def __init__(self, stateName, description="", alphabet=["_", "1", "H", "E"]):
 	
 		self.stateName = stateName
@@ -470,6 +473,9 @@ class State:
 	
 	def isState(self):
 		return True
+
+	def isSimpleState(self):
+		return False
 
 	def makeStartState(self):
 		self.isStartState = True
