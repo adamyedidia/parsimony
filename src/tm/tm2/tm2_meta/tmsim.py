@@ -130,7 +130,7 @@ class SingleTapeTuringMachine(object):
 
                 if self.state.stateName == "ACCEPT":
                     print "Turing machine accepted after", stepCounter, "steps."
-                    print len(self.tape.tapeDict), "squares of memory were used."
+                    print self.tape.length(), "squares of memory were used."
                     halted = True
                     break
 
@@ -142,7 +142,7 @@ class SingleTapeTuringMachine(object):
 
                 if self.state.stateName == "HALT":
                     print "Turing machine halted after", stepCounter, "steps."
-                    print len(self.tape.tapeDict), "squares of memory were used."
+                    print self.tape.length(), "squares of memory were used."
                     halted = True
                     break
 
