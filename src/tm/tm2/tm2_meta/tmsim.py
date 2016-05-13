@@ -266,15 +266,12 @@ class Tape(object):
                 return ordsymbol
             headLoc += direction
             self.headLoc = headLoc
-            if direction > 0:
-                if headLoc == len(tapePos):
-                    tapePos.append(initSymbolOrd)
-                    return initSymbolOrd
-                return tapePos[headLoc]
-            else:
-                if headLoc == -1:
-                    return tapeNeg[0]
-                return tapePos[headLoc]
+            if headLoc == len(tapePos):
+                tapePos.append(initSymbolOrd)
+                return initSymbolOrd
+            if headLoc == -1:
+                return tapeNeg[0]
+            return tapePos[headLoc]
         else:
             pos = ~headLoc
             tapeNeg[pos] = ordsymbol
@@ -282,15 +279,12 @@ class Tape(object):
                 return ordsymbol
             headLoc += direction
             self.headLoc = headLoc
-            if direction > 0:
-                if headLoc == 0:
-                    return tapePos[headLoc]
-                return tapeNeg[~headLoc]
-            else:
-                if ~tapePos == len(tapeNeg):
-                    tapeNeg.append(initSymbolOrd)
-                    return initSymbolOrd
-                return tapeNeg[pos]
+            if headLoc == 0:
+                return tapePos[headLoc]
+            if ~tapePos == len(tapeNeg):
+                tapeNeg.append(initSymbolOrd)
+                return initSymbolOrd
+            return tapeNeg[pos]
 
     def printTape(self, start, end, output=None):
         out = self.getTapeOutput(start, end)
