@@ -110,6 +110,8 @@ class SingleTapeTuringMachine(object):
     def run(self, quiet=False, numSteps=float("Inf"), output=None):
         
         state = self.startState
+        tape = self.tape
+        ordsymbol = tape.readSymbolOrd()
 
         stepCounter = 0
         halted = False
@@ -129,19 +131,19 @@ class SingleTapeTuringMachine(object):
 
                 if state.stateName == "ACCEPT":
                     print "Turing machine accepted after", stepCounter, "steps."
-                    print self.tape.length(), "squares of memory were used."
+                    print tape.length(), "squares of memory were used."
                     halted = True
                     break
 
                 if state.stateName == "REJECT":
                     print "Turing machine rejected after", stepCounter, "steps."
-                    print self.tape.length(), "squares of memory were used."
+                    print tape.length(), "squares of memory were used."
                     halted = True
                     break
 
                 if state.stateName == "HALT":
                     print "Turing machine halted after", stepCounter, "steps."
-                    print self.tape.length(), "squares of memory were used."
+                    print tape.length(), "squares of memory were used."
                     halted = True
                     break
 
@@ -149,12 +151,8 @@ class SingleTapeTuringMachine(object):
                     print "Turing machine execution incomplete: reached out state."
                     print "Perhaps this Turing machine wants to be melded with another machine."
 
-            symbolord = self.tape.readSymbolOrd()
-            headmove = state.getHeadMove(symbolord)
-
-            self.tape.writeSymbolOrd(state.getWrite(symbolord))
-            self.tape.moveHead(headmove)
-            state = state.getNextState(symbolord)
+            state, write, headmove = state.transitionFunc(ordsymbol)
+            ordsymbol = tape.writeSymbolMoveAndRead(write, headmove)
 
         if not halted:
             print "Turing machine ran for", numSteps, "steps without halting."
@@ -199,6 +197,11 @@ class SimulationState(object):
             self.nextState[ord(symbol)] = simulationStates[
                     realState.nextStateDict[symbol]]
 
+    def transitionFunc(self, ordsymbol):
+        return (self.nextState[ordsymbol],
+                self.write[ordsymbol],
+                self.headMove[ordsymbol])
+
     def getNextState(self, ordsymbol):
         return self.nextState[ordsymbol]
 
@@ -218,11 +221,13 @@ class Tape(object):
         self.headLoc = 0
         self.initSymbol = initSymbol
         self.initSymbolOrd = ord(initSymbol)
-        self.tapePos = [self.initSymbolOrd]
-        self.tapeNeg = []
+        # initialize tapes with a few initSymbols
+        self.tapePos = bytearray(self.initSymbol * 100)
+        self.tapeNeg = bytearray(self.initSymbol * 100)
 
     def length(self):
         return len(self.tapePos) + len(self.tapeNeg)
+
 
     def readSymbol(self):
         return self._readSymbol(self.headLoc)
@@ -242,31 +247,50 @@ class Tape(object):
         except IndexError:
             return self.initSymbolOrd
 
-    def writeSymbol(self, symbol):
-        return self.writeSymbolOrd(ord(symbol))
-
     def writeSymbolOrd(self, ordsymbol):
         if self.headLoc >= 0:
             self.tapePos[self.headLoc] = ordsymbol
         else:
             self.tapeNeg[~self.headLoc] = ordsymbol
 
-
-    def moveHead(self, direction):
-        if direction:
-            self.headLoc += direction
-            self.continueTape()
-
-    def continueTape(self):
-        if self.headLoc >= 0:
-            assert 0 <= self.headLoc <= len(self.tapePos)
-            if self.headLoc == len(self.tapePos):
-                self.tapePos.append(self.initSymbolOrd)
+    def writeSymbolMoveAndRead(self, ordsymbol, direction):
+        # somewhat obsfuscated code for the benefit of CPython
+        headLoc = self.headLoc
+        tapePos = self.tapePos
+        tapeNeg = self.tapeNeg
+        initSymbolOrd = self.initSymbolOrd
+        # write the symbol
+        if headLoc >= 0:
+            tapePos[headLoc] = ordsymbol
+            if direction == 0:
+                return ordsymbol
+            headLoc += direction
+            self.headLoc = headLoc
+            if direction > 0:
+                if headLoc == len(tapePos):
+                    tapePos.append(initSymbolOrd)
+                    return initSymbolOrd
+                return tapePos[headLoc]
+            else:
+                if headLoc == -1:
+                    return tapeNeg[0]
+                return tapePos[headLoc]
         else:
-            pos = ~self.headLoc
-            assert 0 <= pos <= len(self.tapeNeg)
-            if pos == len(self.tapeNeg):
-                self.tapeNeg.append(self.initSymbolOrd)
+            pos = ~headLoc
+            tapeNeg[pos] = ordsymbol
+            if direction == 0:
+                return ordsymbol
+            headLoc += direction
+            self.headLoc = headLoc
+            if direction > 0:
+                if headLoc == 0:
+                    return tapePos[headLoc]
+                return tapeNeg[~headLoc]
+            else:
+                if ~tapePos == len(tapeNeg):
+                    tapeNeg.append(initSymbolOrd)
+                    return initSymbolOrd
+                return tapeNeg[pos]
 
     def printTape(self, start, end, output=None):
         out = self.getTapeOutput(start, end)
