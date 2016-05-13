@@ -99,7 +99,6 @@ def stateDictionariesToLists(stateDictionary, alphabet, startState):
 
 class SingleTapeTuringMachine(object):
     def __init__(self, path, alphabet=["_", "1", "H", "E"]):        
-        self.state = None
         self.tape = Tape(None, alphabet[0])
 
         startState, stateDictionary = parseMachine(
@@ -110,7 +109,7 @@ class SingleTapeTuringMachine(object):
 
     def run(self, quiet=False, numSteps=float("Inf"), output=None):
         
-        self.state = self.startState
+        state = self.startState
 
         stepCounter = 0
         halted = False
@@ -118,57 +117,57 @@ class SingleTapeTuringMachine(object):
 
         while stepCounter < numSteps:
             if not quiet:
-                self.printTape(-2, 340, output)
+                self.printTape(state, -2, 340, output)
             
             stepCounter += 1
 
-            if self.state.isSimpleState():
-                if self.state.stateName == "ERROR":
+            if state.isSimpleState():
+                if state.stateName == "ERROR":
                     print "Turing machine threw error!"
                     halted = True
                     break
 
-                if self.state.stateName == "ACCEPT":
+                if state.stateName == "ACCEPT":
                     print "Turing machine accepted after", stepCounter, "steps."
                     print self.tape.length(), "squares of memory were used."
                     halted = True
                     break
 
-                if self.state.stateName == "REJECT":
+                if state.stateName == "REJECT":
                     print "Turing machine rejected after", stepCounter, "steps."
                     print self.tape.length(), "squares of memory were used."
                     halted = True
                     break
 
-                if self.state.stateName == "HALT":
+                if state.stateName == "HALT":
                     print "Turing machine halted after", stepCounter, "steps."
                     print self.tape.length(), "squares of memory were used."
                     halted = True
                     break
 
-                if self.state.stateName == "OUT":
+                if state.stateName == "OUT":
                     print "Turing machine execution incomplete: reached out state."
                     print "Perhaps this Turing machine wants to be melded with another machine."
 
             symbolord = self.tape.readSymbolOrd()
-            headmove = self.state.getHeadMove(symbolord)
+            headmove = state.getHeadMove(symbolord)
 
-            self.tape.writeSymbolOrd(self.state.getWrite(symbolord))
+            self.tape.writeSymbolOrd(state.getWrite(symbolord))
             self.tape.moveHead(headmove)
-            self.state = self.state.getNextState(symbolord)
+            state = state.getNextState(symbolord)
 
         if not halted:
             print "Turing machine ran for", numSteps, "steps without halting."
     
-    def printTape(self, start, end, output):
+    def printTape(self, state, start, end, output):
         if output == None:
         
-            print self.state.stateName
+            print state.stateName
 
             self.tape.printTape(start, end)
 #           print "--------------------------------------"
         else:
-            output.write(self.state.stateName + "\n")
+            output.write(state.stateName + "\n")
 
             self.tape.printTape(start, end, output)
 #           output.write("--------------------------------------\n")    
