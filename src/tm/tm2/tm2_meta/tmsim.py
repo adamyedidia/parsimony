@@ -281,7 +281,7 @@ class Tape(object):
             self.headLoc = headLoc
             if headLoc == 0:
                 return tapePos[headLoc]
-            if ~tapePos == len(tapeNeg):
+            if ~headLoc == len(tapeNeg):
                 tapeNeg.append(initSymbolOrd)
                 return initSymbolOrd
             return tapeNeg[pos]
